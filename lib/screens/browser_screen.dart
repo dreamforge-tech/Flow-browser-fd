@@ -12,8 +12,9 @@ import '../widgets/mobile_bottom_nav.dart';
 import '../widgets/bookmarks_panel.dart';
 import '../widgets/settings_modal.dart';
 import '../widgets/workspaces_modal.dart';
-import '../widgets/mobile_menu.dart';
 import '../widgets/ai_assistant_panel.dart';
+import '../widgets/auth_modal.dart';
+import '../widgets/mobile_menu.dart';
 
 class BrowserScreen extends StatefulWidget {
   const BrowserScreen({super.key});
@@ -28,6 +29,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
   bool _showSettings = false;
   bool _showWorkspaces = false;
   bool _showAIPanel = false;
+  bool _showAuth = false;
   InAppWebViewController? _webViewController;
 
   @override
@@ -54,6 +56,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
                 onAITap: () => setState(() => _showAIPanel = !_showAIPanel),
                 onWorkspaceTap: () => setState(() => _showWorkspaces = true),
                 onSettingsTap: () => setState(() => _showSettings = true),
+                onAuthTap: () => setState(() => _showAuth = true),
                 isMobile: isMobile,
               ),
               
@@ -134,6 +137,12 @@ class _BrowserScreenState extends State<BrowserScreen> {
       return WorkspacesModal(
         onClose: () => setState(() => _showWorkspaces = false),
         isMobile: isMobile,
+      );
+    }
+    
+    if (_showAuth) {
+      return AuthModal(
+        onClose: () => setState(() => _showAuth = false),
       );
     }
     

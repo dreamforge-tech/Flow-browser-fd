@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import '../models/workspace.dart';
-import '../models/tab_model.dart';
 import '../models/bookmark.dart';
+import '../utils/constants.dart';
 
 class BrowserProvider with ChangeNotifier {
   final Box _workspacesBox = Hive.box('workspaces');
@@ -27,6 +27,8 @@ class BrowserProvider with ChangeNotifier {
   List<Bookmark> get bookmarks => _bookmarks;
   String get urlInput => _urlInput;
   
+  int get currentTabIndex => _activeTabIndex;
+  List<TabModel> get tabs => currentWorkspace.tabs;
   Workspace get currentWorkspace => _workspaces[_activeWorkspaceIndex];
   TabModel get currentTab => currentWorkspace.tabs[_activeTabIndex];
   
@@ -124,6 +126,27 @@ class BrowserProvider with ChangeNotifier {
     notifyListeners();
   }
   
+  void createWorkspace(String name, String icon, int color) {
+    final workspace = Workspace(
+      id: _uuid.v4(),
+      name: name,
+      icon: icon,
+      color: color,
+      tabs: [
+        TabModel(
+          id: _uuid.v4(),
+          url: 'about:blank',
+          title: 'New Tab',
+        ),
+      ],
+    );
+    _workspaces.add(workspace);
+    _activeWorkspaceIndex = _workspaces.length - 1;
+    _activeTabIndex = 0;
+    _saveWorkspaces();
+    notifyListeners();
+  }
+  
   // Tab Management
   void addTab() {
     final newTab = TabModel(
@@ -171,7 +194,7 @@ class BrowserProvider with ChangeNotifier {
   }
   
   // Navigation
-  void navigateToUrl(String url) {
+  void navigateToUrl(String url, [String? searchEngine]) {
     String finalUrl = url.trim();
     
     if (finalUrl.isEmpty) return;
@@ -180,8 +203,10 @@ class BrowserProvider with ChangeNotifier {
     final isUrl = RegExp(r'^(https?:\/\/)|(www\.)|(\w+\.\w+)').hasMatch(finalUrl);
     
     if (!isUrl) {
-      // It's a search query - use Google
-      finalUrl = 'https://www.google.com/search?q=${Uri.encodeComponent(finalUrl)}';
+      // It's a search query - use the specified search engine or default to Google
+      final engine = searchEngine ?? 'Google';
+      final searchUrl = AppConstants.searchEngines[engine] ?? AppConstants.searchEngines['Google']!;
+      finalUrl = searchUrl.replaceAll('%s', Uri.encodeComponent(finalUrl));
     } else if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
       finalUrl = 'https://$finalUrl';
     }
@@ -210,10 +235,18 @@ class BrowserProvider with ChangeNotifier {
     notifyListeners();
   }
   
+  void selectTab(int index) {
+    if (index >= 0 && index < currentWorkspace.tabs.length) {
+      _activeTabIndex = index;
+      _urlInput = currentTab.url;
+      notifyListeners();
+    }
+  }
+
   void goHome() {
     navigateToUrl('about:blank');
   }
-  
+
   // Bookmarks
   void addBookmark() {
     if (currentTab.url == 'about:blank') return;

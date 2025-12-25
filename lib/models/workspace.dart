@@ -1,4 +1,3 @@
-import 'tab_model.dart';
 
 class Workspace {
   final String id;
@@ -97,43 +96,6 @@ class TabModel {
       title: json['title'] as String,
       history: (json['history'] as List).cast<String>(),
       historyIndex: json['historyIndex'] as int,
-    );
-  }
-}
-
-// models/bookmark.dart
-class Bookmark {
-  final String id;
-  String url;
-  String title;
-  String workspace;
-  DateTime createdAt;
-  
-  Bookmark({
-    required this.id,
-    required this.url,
-    required this.title,
-    required this.workspace,
-    DateTime? createdAt,
-  }) : createdAt = createdAt ?? DateTime.now();
-  
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'url': url,
-      'title': title,
-      'workspace': workspace,
-      'createdAt': createdAt.toIso8601String(),
-    };
-  }
-  
-  factory Bookmark.fromJson(Map<String, dynamic> json) {
-    return Bookmark(
-      id: json['id'] as String,
-      url: json['url'] as String,
-      title: json['title'] as String,
-      workspace: json['workspace'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }
 }

@@ -1,0 +1,309 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/settings_provider.dart';
+import '../utils/constants.dart';
+
+class SettingsModal extends StatefulWidget {
+  final VoidCallback onClose;
+  final bool isMobile;
+
+  const SettingsModal({
+    super.key,
+    required this.onClose,
+    this.isMobile = false,
+  });
+
+  @override
+  State<SettingsModal> createState() => _SettingsModalState();
+}
+
+class _SettingsModalState extends State<SettingsModal> {
+  @override
+  Widget build(BuildContext context) {
+    final settingsProvider = Provider.of<SettingsProvider>(context);
+    final isMobile = MediaQuery.of(context).size.width < 768;
+
+    return Container(
+      constraints: BoxConstraints(
+        maxWidth: isMobile ? double.infinity : 600,
+        maxHeight: isMobile ? 600 : 700,
+      ),
+      decoration: BoxDecoration(
+        color: AppConstants.surfaceColor,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(isMobile ? 20 : 0),
+          topRight: Radius.circular(isMobile ? 20 : 0),
+          bottomLeft: const Radius.circular(20),
+          bottomRight: const Radius.circular(20),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 20,
+            spreadRadius: 5,
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: AppConstants.primaryGradient,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(isMobile ? 20 : 0),
+                topRight: Radius.circular(isMobile ? 20 : 0),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.settings,
+                  color: Colors.white,
+                  size: 28,
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'Settings',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: widget.onClose,
+                ),
+              ],
+            ),
+          ),
+
+          // Settings content
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Privacy & Security
+                  _buildSectionHeader('Privacy & Security'),
+                  _buildSwitchTile(
+                    'Block Trackers',
+                    'Prevent tracking scripts from monitoring your activity',
+                    settingsProvider.blockTrackers,
+                    (value) => settingsProvider.toggleBlockTrackers(),
+                  ),
+                  _buildSwitchTile(
+                    'Anti-Fingerprinting',
+                    'Prevent websites from creating unique fingerprints',
+                    settingsProvider.antiFingerprint,
+                    (value) => settingsProvider.toggleAntiFingerprint(),
+                  ),
+                  _buildSwitchTile(
+                    'Auto-Delete Cookies',
+                    'Automatically clear cookies on browser close',
+                    settingsProvider.autoDeleteCookies,
+                    (value) => settingsProvider.toggleAutoDeleteCookies(),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // VPN & Proxy
+                  _buildSectionHeader('VPN & Proxy'),
+                  _buildSwitchTile(
+                    'Enable Proxy',
+                    'Route traffic through a proxy server',
+                    settingsProvider.proxyEnabled,
+                    (value) => settingsProvider.toggleProxy(),
+                  ),
+                  _buildSwitchTile(
+                    'Enable VPN',
+                    'Connect to VPN for enhanced privacy',
+                    settingsProvider.vpnEnabled,
+                    (value) => settingsProvider.toggleVPN(),
+                  ),
+
+                  if (settingsProvider.vpnEnabled) ...[
+                    const SizedBox(height: 16),
+                    _buildDropdownTile(
+                      'VPN Provider',
+                      'Choose your VPN service',
+                      settingsProvider.vpnProvider,
+                      AppConstants.vpnProviders.map((p) => p.id).toList(),
+                      AppConstants.vpnProviders.map((p) => p.name).toList(),
+                      (value) => settingsProvider.setVpnProvider(value!),
+                    ),
+                  ],
+
+                  const SizedBox(height: 24),
+
+                  // Search & Navigation
+                  _buildSectionHeader('Search & Navigation'),
+                  _buildDropdownTile(
+                    'Default Search Engine',
+                    'Choose your preferred search engine',
+                    settingsProvider.searchEngine,
+                    AppConstants.searchEngines.keys.toList(),
+                    AppConstants.searchEngines.keys.toList(),
+                    (value) => settingsProvider.setSearchEngine(value!),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Appearance
+                  _buildSectionHeader('Appearance'),
+                  _buildSwitchTile(
+                    'Dark Mode',
+                    'Use dark theme for better visibility',
+                    settingsProvider.isDarkMode,
+                    (value) => settingsProvider.toggleDarkMode(),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Close button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: widget.onClose,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppConstants.primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Close Settings',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: AppConstants.primaryColor,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSwitchTile(String title, String subtitle, bool value, Function(bool) onChanged) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade800.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppConstants.primaryColor.withOpacity(0.2),
+        ),
+      ),
+      child: SwitchListTile(
+        title: Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.7),
+            fontSize: 12,
+          ),
+        ),
+        value: value,
+        onChanged: onChanged,
+        activeColor: AppConstants.primaryColor,
+        activeTrackColor: AppConstants.primaryColor.withOpacity(0.3),
+      ),
+    );
+  }
+
+  Widget _buildDropdownTile(
+    String title,
+    String subtitle,
+    String value,
+    List<String> values,
+    List<String> displayNames,
+    Function(String?) onChanged,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade800.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppConstants.primaryColor.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.7),
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade700.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: DropdownButton<String>(
+              value: value,
+              isExpanded: true,
+              dropdownColor: AppConstants.surfaceColor,
+              style: const TextStyle(color: Colors.white),
+              underline: const SizedBox(),
+              items: List.generate(
+                values.length,
+                (index) => DropdownMenuItem(
+                  value: values[index],
+                  child: Text(displayNames[index]),
+                ),
+              ),
+              onChanged: onChanged,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/browser_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/auth_modal.dart';
 import '../utils/constants.dart';
 
 class BrowserHeader extends StatefulWidget {
@@ -11,6 +12,7 @@ class BrowserHeader extends StatefulWidget {
   final VoidCallback onAITap;
   final VoidCallback onWorkspaceTap;
   final VoidCallback onSettingsTap;
+  final VoidCallback onAuthTap;
   final bool isMobile;
 
   const BrowserHeader({
@@ -20,6 +22,7 @@ class BrowserHeader extends StatefulWidget {
     required this.onAITap,
     required this.onWorkspaceTap,
     required this.onSettingsTap,
+    required this.onAuthTap,
     required this.isMobile,
   });
 
@@ -185,13 +188,13 @@ class _BrowserHeaderState extends State<BrowserHeader> {
         _buildNavButton(
           Icons.arrow_back,
           () => provider.goBack(),
-          provider.currentTab.canGoBack,
+          true, // Always enabled
         ),
         const SizedBox(width: 4),
         _buildNavButton(
           Icons.arrow_forward,
           () => provider.goForward(),
-          provider.currentTab.canGoForward,
+          true, // Always enabled
         ),
         const SizedBox(width: 4),
         _buildNavButton(
@@ -258,7 +261,7 @@ class _BrowserHeaderState extends State<BrowserHeader> {
                 contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
               onSubmitted: (value) {
-                browserProvider.navigateToUrl(value);
+                browserProvider.navigateToUrl(value, settingsProvider.searchEngine);
               },
             ),
           ),
@@ -355,9 +358,7 @@ class _BrowserHeaderState extends State<BrowserHeader> {
   Widget _buildUserMenu(AuthProvider authProvider) {
     if (!authProvider.isAuthenticated) {
       return ElevatedButton(
-        onPressed: () {
-          // Show auth modal
-        },
+        onPressed: widget.onAuthTap,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppConstants.primaryColor,
           foregroundColor: Colors.white,

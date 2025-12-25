@@ -17,9 +17,9 @@ dependencies:
   
   # Web View for browser functionality
   flutter_inappwebview: ^6.0.0
-  webview_flutter: ^4.4.2
-  webview_flutter_android: ^4.10.11
-  webview_flutter_wkwebview: ^3.9.4
+  #webview_flutter: ^4.4.2
+  #webview_flutter_android: ^4.10.11
+  #webview_flutter_wkwebview: ^3.9.4
   
   # State Management
   provider: ^6.1.1
@@ -69,14 +69,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  
-  assets:
-    - assets/images/
-    - assets/icons/
-  
-  fonts:
-    - family: SpaceMono
-      fonts:
-        - asset: fonts/SpaceMono-Regular.ttf
-        - asset: fonts/SpaceMono-Bold.ttf
-          weight: 700

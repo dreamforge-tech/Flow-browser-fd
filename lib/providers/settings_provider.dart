@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SettingsProvider with ChangeNotifier {
   final Box _settingsBox = Hive.box('settings');
@@ -12,6 +13,7 @@ class SettingsProvider with ChangeNotifier {
   bool _autoDeleteCookies = true;
   String _securityLevel = 'maximum';
   String _searchEngine = 'Google';
+  bool _isDarkMode = false;
   
   SettingsProvider() {
     _loadSettings();
@@ -26,6 +28,7 @@ class SettingsProvider with ChangeNotifier {
   bool get autoDeleteCookies => _autoDeleteCookies;
   String get securityLevel => _securityLevel;
   String get searchEngine => _searchEngine;
+  bool get isDarkMode => _isDarkMode;
   
   void _loadSettings() {
     _proxyEnabled = _settingsBox.get('proxyEnabled', defaultValue: false);
@@ -36,6 +39,7 @@ class SettingsProvider with ChangeNotifier {
     _autoDeleteCookies = _settingsBox.get('autoDeleteCookies', defaultValue: true);
     _securityLevel = _settingsBox.get('securityLevel', defaultValue: 'maximum');
     _searchEngine = _settingsBox.get('searchEngine', defaultValue: 'Google');
+    _isDarkMode = _settingsBox.get('isDarkMode', defaultValue: false);
     notifyListeners();
   }
   
@@ -86,82 +90,10 @@ class SettingsProvider with ChangeNotifier {
     _settingsBox.put('searchEngine', engine);
     notifyListeners();
   }
-}
 
-// providers/auth_provider.dart
-import 'package:flutter/foundation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-
-class AuthProvider with ChangeNotifier {
-  final _supabase = Supabase.instance.client;
-  User? _user;
-  bool _isLoading = false;
-  String? _error;
-  
-  AuthProvider() {
-    _checkUser();
-  }
-  
-  User? get user => _user;
-  bool get isLoading => _isLoading;
-  String? get error => _error;
-  bool get isAuthenticated => _user != null;
-  
-  Future<void> _checkUser() async {
-    _user = _supabase.auth.currentUser;
+  void toggleDarkMode() {
+    _isDarkMode = !_isDarkMode;
+    _settingsBox.put('isDarkMode', _isDarkMode);
     notifyListeners();
-  }
-  
-  Future<void> signUp(String email, String password) async {
-    try {
-      _isLoading = true;
-      _error = null;
-      notifyListeners();
-      
-      final response = await _supabase.auth.signUp(
-        email: email,
-        password: password,
-      );
-      
-      _user = response.user;
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-  
-  Future<void> signIn(String email, String password) async {
-    try {
-      _isLoading = true;
-      _error = null;
-      notifyListeners();
-      
-      final response = await _supabase.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
-      
-      _user = response.user;
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-  
-  Future<void> signOut() async {
-    try {
-      await _supabase.auth.signOut();
-      _user = null;
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString();
-      notifyListeners();
-    }
   }
 }
