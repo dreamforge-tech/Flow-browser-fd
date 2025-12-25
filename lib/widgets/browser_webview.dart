@@ -109,15 +109,15 @@ class _BrowserWebViewState extends State<BrowserWebView> {
                   gradient: AppConstants.primaryGradient,
                   boxShadow: [
                     BoxShadow(
-                      color: AppConstants.primaryColor.withOpacity(0.5),
-                      blurRadius: 60,
-                      spreadRadius: 10,
+                      color: AppConstants.primaryColor.withOpacity(0.35),
+                      blurRadius: 30,
+                      spreadRadius: 6,
                     ),
                   ],
                 ),
                 child: const Icon(
                   Icons.language,
-                  size: 50,
+                  size: 44,
                   color: Colors.white,
                 ),
               ),
@@ -133,8 +133,8 @@ class _BrowserWebViewState extends State<BrowserWebView> {
                 child: const Text(
                   'Flow Browser',
                   style: TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 40,
+                    fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
                 ),
@@ -143,16 +143,16 @@ class _BrowserWebViewState extends State<BrowserWebView> {
               Text(
                 'Workspace: ${provider.currentWorkspace.name}',
                 style: TextStyle(
-                  color: AppConstants.primaryColor.withOpacity(0.7),
-                  fontSize: 18,
+                  color: AppConstants.primaryColor.withOpacity(0.75),
+                  fontSize: 16,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Enter a URL or search query above to start browsing',
                 style: TextStyle(
-                  color: AppConstants.primaryColor.withOpacity(0.5),
-                  fontSize: 14,
+                  color: AppConstants.primaryColor.withOpacity(0.55),
+                  fontSize: 13,
                 ),
                 textAlign: TextAlign.center,
               ),

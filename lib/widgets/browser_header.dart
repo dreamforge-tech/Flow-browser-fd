@@ -54,7 +54,7 @@ class _BrowserHeaderState extends State<BrowserHeader> {
         vertical: widget.isMobile ? 8 : 12,
       ),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.4),
+        color: AppConstants.surfaceColor.withOpacity(0.6),
         border: Border(
           bottom: BorderSide(
             color: AppConstants.primaryColor.withOpacity(0.3),
@@ -215,7 +215,7 @@ class _BrowserHeaderState extends State<BrowserHeader> {
   Widget _buildNavButton(IconData icon, VoidCallback onPressed, bool enabled) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.shade800.withOpacity(0.5),
+        color: AppConstants.surfaceColor.withOpacity(0.35),
         borderRadius: BorderRadius.circular(8),
       ),
       child: IconButton(
@@ -344,13 +344,23 @@ class _BrowserHeaderState extends State<BrowserHeader> {
             ? Border.all(color: Colors.green.withOpacity(0.3))
             : null,
       ),
-      child: IconButton(
-        icon: Icon(icon),
-        color: isActive ? Colors.green : AppConstants.primaryColor,
-        iconSize: 20,
-        onPressed: onPressed,
-        padding: const EdgeInsets.all(8),
-        constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+      child: Tooltip(
+        message: isActive ? 'Remove bookmark' : 'Add bookmark',
+        child: IconButton(
+          icon: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 240),
+            transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+            child: Icon(
+              isActive ? Icons.star : Icons.star_border,
+              key: ValueKey<bool>(isActive),
+            ),
+          ),
+          color: isActive ? Colors.green : AppConstants.primaryColor,
+          iconSize: 20,
+          onPressed: onPressed,
+          padding: const EdgeInsets.all(8),
+          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+        ),
       ),
     );
   }
