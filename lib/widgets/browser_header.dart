@@ -294,10 +294,22 @@ class _BrowserHeaderState extends State<BrowserHeader> {
 
   List<Widget> _buildDesktopActions(BrowserProvider provider) {
     return [
-      _buildActionButton(
-        Icons.star,
-        widget.onBookmarkTap,
-        provider.isBookmarked(provider.currentTab.url),
+      Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade800.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Tooltip(
+          message: 'Bookmarks',
+          child: IconButton(
+            icon: const Icon(Icons.bookmarks),
+            color: AppConstants.primaryColor,
+            iconSize: 20,
+            onPressed: widget.onBookmarkTap,
+            padding: const EdgeInsets.all(8),
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          ),
+        ),
       ),
       const SizedBox(width: 8),
       Container(
@@ -345,7 +357,7 @@ class _BrowserHeaderState extends State<BrowserHeader> {
             : null,
       ),
       child: Tooltip(
-        message: isActive ? 'Remove bookmark' : 'Add bookmark',
+        message: isActive ? 'Disable proxy' : 'Enable proxy',
         child: IconButton(
           icon: AnimatedSwitcher(
             duration: const Duration(milliseconds: 240),

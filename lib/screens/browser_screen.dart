@@ -52,25 +52,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
               // Header with URL bar and controls
               BrowserHeader(
                 onMenuTap: isMobile ? () => _scaffoldKey.currentState?.openDrawer() : null,
-                onBookmarkTap: () {
-                  final provider = context.read<BrowserProvider>();
-                  final currentUrl = provider.currentTab.url;
-                  // If already bookmarked, remove it; otherwise add bookmark
-                  if (provider.isBookmarked(currentUrl)) {
-                    try {
-                      final existing = provider.bookmarks.firstWhere((b) => b.url == currentUrl);
-                      provider.removeBookmark(existing.id);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Bookmark removed')),
-                      );
-                    } catch (_) {}
-                  } else {
-                    provider.addBookmark();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Bookmark added')),
-                    );
-                  }
-                },
+                onBookmarkTap: () => setState(() => _showBookmarks = !_showBookmarks),
                 onAITap: () => setState(() => _showAIPanel = !_showAIPanel),
                 onWorkspaceTap: () => setState(() => _showWorkspaces = true),
                 onSettingsTap: () => setState(() => _showSettings = true),

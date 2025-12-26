@@ -42,9 +42,30 @@ class BookmarksPanel extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close, color: AppConstants.primaryColor),
-                  onPressed: onClose,
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.add, color: AppConstants.primaryColor),
+                      tooltip: 'Add current page',
+                      onPressed: () {
+                        final currentUrl = provider.currentTab.url;
+                        if (!provider.isBookmarked(currentUrl)) {
+                          provider.addBookmark();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Bookmark added')),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Already bookmarked')),
+                          );
+                        }
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: AppConstants.primaryColor),
+                      onPressed: onClose,
+                    ),
+                  ],
                 ),
               ],
             ),
