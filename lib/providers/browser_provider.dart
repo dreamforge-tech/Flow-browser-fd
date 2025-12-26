@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/workspace.dart';
 import '../models/bookmark.dart';
+import '../models/tab_group.dart';
 import '../utils/constants.dart';
 
 class BrowserProvider with ChangeNotifier {
@@ -369,7 +370,13 @@ class BrowserProvider with ChangeNotifier {
     _urlInput = currentTab.url;
     notifyListeners();
   }
-  
+
+  void reorderTabs(List<TabModel> newOrder) {
+    _workspaces[_activeWorkspaceIndex].tabs = newOrder;
+    _saveWorkspaces();
+    Future(() => _upsertSessionToSupabase());
+  }
+
   void updateCurrentTab({String? url, String? title}) {
     if (url != null) {
       currentTab.url = url;
@@ -438,12 +445,63 @@ class BrowserProvider with ChangeNotifier {
     notifyListeners();
   }
   
-  void selectTab(int index) {
-    if (index >= 0 && index < currentWorkspace.tabs.length) {
-      _activeTabIndex = index;
-      _urlInput = currentTab.url;
+  void duplicateTab(int index) {
+    final originalTab = tabs[index];
+    final newTab = TabModel(
+      id: _uuid.v4(),
+      url: originalTab.url,
+      title: originalTab.title,
+    );
+    currentWorkspace.tabs.add(newTab);
+    _activeTabIndex = currentWorkspace.tabs.length - 1;
+    _saveWorkspaces();
+    notifyListeners();
+  }
+
+  // Tab Groups
+  void createTabGroup(String name, int color, List<int> tabIndices) {
+    final group = TabGroup(
+      id: _uuid.v4(),
+      name: name,
+      color: color,
+      tabIds: tabIndices.map((i) => tabs[i].id).toList(),
+    );
+    currentWorkspace.tabGroups.add(group);
+    _saveWorkspaces();
+    notifyListeners();
+  }
+
+  void toggleTabGroup(String groupId) {
+    final group = currentWorkspace.tabGroups.firstWhere((g) => g.id == groupId);
+    group.isCollapsed = !group.isCollapsed;
+    _saveWorkspaces();
+    notifyListeners();
+  }
+
+  void removeTabFromGroup(String tabId, String groupId) {
+    final group = currentWorkspace.tabGroups.firstWhere((g) => g.id == groupId);
+    group.tabIds.remove(tabId);
+    if (group.tabIds.isEmpty) {
+      currentWorkspace.tabGroups.removeWhere((g) => g.id == groupId);
+    }
+    _saveWorkspaces();
+    notifyListeners();
+  }
+
+  void addTabToGroup(String tabId, String groupId) {
+    final group = currentWorkspace.tabGroups.firstWhere((g) => g.id == groupId);
+    if (!group.tabIds.contains(tabId)) {
+      group.tabIds.add(tabId);
+      _saveWorkspaces();
       notifyListeners();
     }
+  }
+
+  void deleteTabGroup(String groupId) {
+    final group = currentWorkspace.tabGroups.firstWhere((g) => g.id == groupId);
+    currentWorkspace.tabGroups.remove(group);
+    _saveWorkspaces();
+    notifyListeners();
   }
 
   void goHome() {
@@ -453,6 +511,10 @@ class BrowserProvider with ChangeNotifier {
   // Bookmarks
   void addBookmark() {
     if (currentTab.url == 'about:blank') return;
+
+    // Check if user is authenticated
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return; // Should be checked in UI, but double-check here
 
     // Prevent duplicates
     if (isBookmarked(currentTab.url)) return;

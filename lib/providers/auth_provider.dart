@@ -34,10 +34,17 @@ class AuthProvider with ChangeNotifier {
       final response = await Supabase.instance.client.auth.signUp(
         email: email,
         password: password,
+        emailRedirectTo: null, // Handle verification in app
       );
       _user = response.user;
+      // Check if email confirmation is required
+      if (_user != null && _user!.emailConfirmedAt == null) {
+        // Email verification required
+        // The user will need to verify their email before they can sign in
+      }
     } catch (e) {
       // Handle error
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();

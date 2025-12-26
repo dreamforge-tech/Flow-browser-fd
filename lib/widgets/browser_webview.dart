@@ -18,6 +18,44 @@ class BrowserWebView extends StatefulWidget {
 class _BrowserWebViewState extends State<BrowserWebView> {
   InAppWebViewController? _controller;
   double _progress = 0;
+  String? _lastLoadedUrl;
+  String? _lastTabId;
+  final Map<String, String> _tabCache = {}; // Cache for tab URLs
+  final Map<String, String> _titleCache = {}; // Cache for tab titles
+
+  @override
+  void didUpdateWidget(BrowserWebView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final browserProvider = context.read<BrowserProvider>();
+    final currentTab = browserProvider.currentTab;
+    
+    // Load new URL if:
+    // 1. Tab changed (different tab ID)
+    // 2. URL changed for current tab
+    // 3. URL is not about:blank
+    final tabChanged = _lastTabId != currentTab.id;
+    final urlChanged = currentTab.url != _lastLoadedUrl;
+    
+    if (_controller != null && (tabChanged || urlChanged) && currentTab.url != 'about:blank') {
+      // Use cache if available for instant switching
+      if (tabChanged && _tabCache.containsKey(currentTab.id)) {
+        _controller!.loadUrl(urlRequest: URLRequest(url: WebUri(_tabCache[currentTab.id]!)));
+        _lastLoadedUrl = _tabCache[currentTab.id];
+      } else {
+        _controller!.loadUrl(urlRequest: URLRequest(url: WebUri(currentTab.url)));
+        _lastLoadedUrl = currentTab.url;
+      }
+      _lastTabId = currentTab.id;
+      
+      // Update title from cache if available
+      if (tabChanged && _titleCache.containsKey(currentTab.id)) {
+        currentTab.title = _titleCache[currentTab.id]!;
+      }
+    } else if (tabChanged) {
+      _lastTabId = currentTab.id;
+      _lastLoadedUrl = currentTab.url;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,14 +78,38 @@ class _BrowserWebViewState extends State<BrowserWebView> {
             allowsInlineMediaPlayback: true,
             useOnLoadResource: settingsProvider.blockTrackers,
             useShouldOverrideUrlLoading: true,
+            // Performance optimizations
+            cacheEnabled: true,
+            domStorageEnabled: true,
+            databaseEnabled: true,
+            hardwareAcceleration: true,
+            useWideViewPort: true,
+            loadWithOverviewMode: true,
+            supportZoom: false,
+            builtInZoomControls: false,
+            displayZoomControls: false,
+            useOnRenderProcessGone: true,
+            safeBrowsingEnabled: true,
+            disableDefaultErrorPage: true,
+            verticalScrollBarEnabled: false,
+            horizontalScrollBarEnabled: false,
+            overScrollMode: OverScrollMode.IF_CONTENT_SCROLLS,
+            scrollBarStyle: ScrollBarStyle.SCROLLBARS_OUTSIDE_OVERLAY,
+            scrollBarFadeDuration: 0,
+            // Network optimizations
+            resourceCustomSchemes: [],
           ),
           onWebViewCreated: (controller) {
             _controller = controller;
+            _lastLoadedUrl = context.read<BrowserProvider>().currentTab.url;
             widget.onWebViewCreated?.call(controller);
           },
           onLoadStart: (controller, url) {
             setState(() => _progress = 0);
             currentTab.isLoading = true;
+            if (url != null) {
+              browserProvider.updateCurrentTab(url: url.toString());
+            }
           },
           onProgressChanged: (controller, progress) {
             setState(() => _progress = progress / 100);
@@ -55,24 +117,35 @@ class _BrowserWebViewState extends State<BrowserWebView> {
           onLoadStop: (controller, url) async {
             currentTab.isLoading = false;
             if (url != null) {
+              final title = await controller.getTitle() ?? url.toString();
               browserProvider.updateCurrentTab(
                 url: url.toString(),
-                title: await controller.getTitle() ?? url.toString(),
+                title: title,
               );
+              // Cache the URL and title for instant switching
+              _tabCache[currentTab.id] = url.toString();
+              _titleCache[currentTab.id] = title;
             }
+            setState(() => _progress = 1.0);
           },
           onTitleChanged: (controller, title) {
             if (title != null) {
               browserProvider.updateCurrentTab(title: title);
+              // Cache the title for instant switching
+              _titleCache[currentTab.id] = title;
             }
           },
           shouldOverrideUrlLoading: (controller, navigationAction) async {
             final url = navigationAction.request.url;
-            if (url != null && settingsProvider.blockTrackers) {
+            if (url != null) {
               final urlString = url.toString();
-              if (AppConstants.trackerBlocklist.any((domain) => 
-                  urlString.contains(domain))) {
-                return NavigationActionPolicy.CANCEL;
+              browserProvider.updateCurrentTab(url: urlString);
+              
+              if (settingsProvider.blockTrackers) {
+                if (AppConstants.trackerBlocklist.any((domain) => 
+                    urlString.contains(domain))) {
+                  return NavigationActionPolicy.CANCEL;
+                }
               }
             }
             return NavigationActionPolicy.ALLOW;

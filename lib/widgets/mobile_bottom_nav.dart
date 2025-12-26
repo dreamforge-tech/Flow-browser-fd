@@ -17,18 +17,18 @@ class MobileBottomNav extends StatelessWidget {
           icon: Icon(Icons.home),
           label: 'Home',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(isBookmarked ? Icons.bookmark : Icons.bookmark_outline, color: AppConstants.primaryColor),
-          label: 'Bookmarks',
-        ),
         const BottomNavigationBarItem(
           icon: Icon(Icons.settings),
           label: 'Settings',
         ),
       ],
       onTap: (index) {
-        // Handle navigation: index 1 should open bookmarks sheet
-        // We cannot directly change parent state here; the parent scaffold listens to taps.
+        // Handle navigation
+        if (index == 0) {
+          provider.goHome();
+        } else if (index == 1) {
+          // Open settings - handled by parent
+        }
       },
     );
   }

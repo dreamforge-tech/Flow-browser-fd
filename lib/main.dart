@@ -54,6 +54,7 @@ class MyApp extends StatelessWidget {
 
           return MaterialApp(
             title: 'Flow Browser',
+            debugShowCheckedModeBanner: false,
             theme: light,
             darkTheme: dark,
             themeMode: settings.isDarkMode ? ThemeMode.dark : ThemeMode.light,

@@ -1,4 +1,6 @@
-﻿# Next Update: Supabase schema for sync (tabs, sessions, bookmarks)
+﻿can you make the long press not have to be so long, so it works on shorter holds. also make it so teh animation are smooth when movnig a tab so that tabs move aside for it and they can position it exactly when they want. also with the new window, i meant a new window/ opening of the app, not a workspace. then the tabs still dont update isntantly so fix that along with making teh tabs cache so you can switch between tabs seamlessly and getting the rigth pages and content instantly, and not eh page you were on bewfore the new one
+
+# Next Update: Supabase schema for sync (tabs, sessions, bookmarks)
 
 Supabase SQL schemas and instructions to enable cross-device tabs/sessions, bookmarks, devices, and email verification.
 

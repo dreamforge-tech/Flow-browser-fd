@@ -58,6 +58,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
                 onSettingsTap: () => setState(() => _showSettings = true),
                 onAuthTap: () => setState(() => _showAuth = true),
                 isMobile: isMobile,
+                webViewController: _webViewController,
               ),
               // Email verification banner
               Consumer<AuthProvider>(
@@ -94,7 +95,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
               ),
               
               // Tabs bar (desktop/tablet only)
-              (!isMobile) ? BrowserTabs() : const SizedBox(),
+              (!isMobile) ? BrowserTabs(webViewController: _webViewController) : const SizedBox(),
               
               // Main content area with webview
               Expanded(
